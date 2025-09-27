@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal - 您的本地化数据管理中心</title>
+    
+    <!-- Tailwind CSS JIT CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & Babel for JSX in browser -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-color: #007AFF;
+            --scroll-y: 0;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', 'SF Pro', 'Helvetica Neue', sans-serif;
+            background-color: #000000;
+            color: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 25% calc(25% + var(--scroll-y) * 0.1px), rgba(0, 122, 255, 0.1), transparent 40%),
+                              radial-gradient(circle at 75% calc(75% + var(--scroll-y) * 0.05px), rgba(0, 122, 255, 0.08), transparent 50%);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        
+        .animated-text-gradient {
+            background: linear-gradient(180deg, #FFFFFF, #cccccc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .word-anim > span {
+            opacity: 0;
+            transform: translateY(20px);
+            display: inline-block;
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .fade-in-section.is-visible .word-anim > span {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1), transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cta-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            padding-bottom: 150%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 122, 255, 0.35) 0%, rgba(0, 122, 255, 0) 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: -1;
+        }
+        .cta-button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        #aurora-wrapper::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 150vw;
+            height: 150vh;
+            background-image: radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 40%);
+            transform: translate(-50%, -50%);
+            filter: blur(120px);
+            z-index: -2;
+            animation: pulse 20s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.1; }
+            50% { transform: translate(-45%, -55%) scale(1.2); opacity: 0.2; }
+        }
+
+    </style>
+</head>
+<body class="bg-black">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        
+        const icons = {
+            WindowsIcon: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M3 11.25V3h8.25v8.25H3zM12.75 3v8.25H21V3h-8.25zM3 21v-8.25h8.25V21H3zm9.75 0V12.75H21V21h-8.25z"/></svg>,
+            MacosIcon: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="mr-2 -mt-0.5"><path d="M15.59 2.1a5.62 5.62 0 0 0-4.43 2.81 5.38 5.38 0 0 0-4.48-2.81 5.52 5.52 0 0 0-5.28 5.76c0 3.42 2.28 6.34 4.5 8.13 1.11.89 2.42 1.84 4.12 1.84s3.-1 4.11-1.84c2.22-1.8 4.5-4.71 4.5-8.13a5.52 5.52 0 0 0-5.14-5.76zm-1.12 12.65c-.78.78-1.62 1.34-2.86 1.34s-2.07-.56-2.85-1.34c-1.39-1.38-2.43-3.09-2.73-4.66h11.17c-.3 1.57-1.34 3.28-2.73 4.66zM15.9 4.14a3.52 3.52 0 0 1 2.39 1.48 3.23 3.23 0 0 0-2.34 1.13 3.3 3.3 0 0 0-2.4-1.13 3.5 3.5 0 0 1 2.35-1.48z"/></svg>,
+            GithubIcon: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 hover:text-white transition-colors"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        };
+        
+        // --- Hooks & Components ---
+
+        const useFadeIn = (threshold = 0.1) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                }, { root: null, rootMargin: '0px', threshold });
+                if (ref.current) observer.observe(ref.current);
+                const currentRef = ref.current;
+                return () => currentRef && observer.unobserve(currentRef);
+            }, []);
+            return ref;
+        };
+        
+        const SectionHeader = ({ text }) => {
+            const ref = useFadeIn(0.5);
+            const words = text.split(' ');
+            return (
+                <h2 ref={ref} className="fade-in-section word-anim text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-tight max-w-5xl mx-auto animated-text-gradient">
+                    {words.map((word, i) => ( <span key={i} style={{ transitionDelay: `${i * 100}ms` }}>{word}&nbsp;</span> ))}
+                </h2>
+            );
+        };
+        
+        const ProductWindow = ({ activeFeature }) => {
+            const mockUIs = {
+                notes: { title: "灵感妙记", content: <div className="p-6 text-sm text-gray-300 font-mono"><h3 className="text-white font-bold mb-4 text-base"># Personal 官网设计思路.md</h3><p><span className="text-blue-400">## 核心理念</span><br/>- 简约高级, 参考 <span className="text-green-400">Apple</span> 官网<br/>- 突出 **本地化** 与 **隐私安全**</p></div> },
+                vault: { title: "密码库", content: <div className="p-6 text-sm text-gray-300"><div className="flex items-center mb-4 p-3 bg-white/5 rounded-lg"><div className="w-8 h-8 rounded-lg bg-blue-500 mr-4 flex-shrink-0"></div><div className="w-full"><div className="h-4 bg-gray-600 rounded w-1/2"></div></div></div><div className="flex items-center p-3 bg-white/5 rounded-lg"><div className="w-8 h-8 rounded-lg bg-green-500 mr-4 flex-shrink-0"></div><div className="w-full"><div className="h-4 bg-gray-600 rounded w-3/5"></div></div></div></div> },
+                sites: { title: "网站管理", content: <div className="p-6 space-y-3"><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">github.com</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">google.com</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">apple.com</div></div> },
+                command: { title: "命令面板", content: <div className="p-6 text-gray-400 font-mono text-base">&gt; search personal...<span className="animate-ping">_</span></div> },
+                offline: { title: "离线优先", content: <div className="p-6 flex items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="M17.5 19.5C19.433 19.5 21 17.933 21 16C21 14.067 19.433 12.5 17.5 12.5H17.062C16.8475 9.48934 14.4442 7.02868 11.4384 7.00067C8.75026 6.97541 6.38671 8.87593 5.67004 11.5M4.5 15.5C3.11929 15.5 2 16.6193 2 18C2 19.3807 3.11929 20.5 4.5 20.5H15.5"/><path d="M4 19L20 5"/></svg></div> }
+            };
+
+            return (
+                <div className="w-full h-[50vh] md:h-[60vh] bg-black/30 border border-white/10 rounded-3xl shadow-2xl shadow-black/30 flex flex-col backdrop-blur-2xl overflow-hidden transition-all duration-500">
+                    <div className="flex-shrink-0 flex items-center space-x-2 p-4 border-b border-white/10">
+                        <div className="w-3.5 h-3.5 rounded-full bg-gray-700"></div>
+                        <div className="w-3.5 h-3.5 rounded-full bg-gray-700"></div>
+                        <div className="w-3.5 h-3.5 rounded-full bg-gray-700"></div>
+                    </div>
+                    <div className="flex-grow bg-gray-900/50 relative">
+                         {Object.keys(mockUIs).map(key => (
+                            <div key={key} className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${activeFeature === key ? 'opacity-100' : 'opacity-0'}`}>
+                                {mockUIs[key].content}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+        
+        const FeatureTextPanel = ({ featureRef, id, title, description, isVisible }) => {
+            return (
+                <div ref={featureRef} data-feature-id={id} className={`min-h-screen flex flex-col justify-center transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-30'}`}>
+                    <h3 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter animated-text-gradient">{title}</h3>
+                    <p className="text-lg lg:text-xl text-gray-400 max-w-md leading-relaxed">{description}</p>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeFeature, setActiveFeature] = useState('notes');
+
+            const features = useMemo(() => [
+                { id: "notes", title: "灵感妙记", description: "强大的本地 Markdown 笔记系统。支持新建、编辑、删除，自动提取标签，并提供全文搜索与即时预览。" },
+                { id: "vault", title: "密码库", description: "采用 PBKDF2 与 AES-GCM 行业标准加密。支持 TOTP 和自定义附加字段，为您的数字身份提供坚实保障。" },
+                { id: "sites", title: "网站管理", description: "便捷记录和管理常用站点，一键快速打开或删除。在命令行模式下，更可实现全局模糊搜索，效率倍增。" },
+                { id: "command", title: "命令面板", description: "通过全局快捷键唤醒统一入口，快速执行应用内几乎所有功能。无需鼠标，沉浸式操作体验触手可及。" },
+                { id: "offline", title: "离线优先", description: "内置 SQLite 和 IndexedDB 双重保障，核心数据离线可访问。PWA 支持让您随时随地都能高效工作。" }
+            ], []);
+
+            const featureRefs = useRef({});
+
+            useEffect(() => {
+                const handleScroll = () => document.documentElement.style.setProperty('--scroll-y', `${window.scrollY}px`);
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                setActiveFeature(entry.target.dataset.featureId);
+                            }
+                        });
+                    },
+                    { rootMargin: "-40% 0px -40% 0px", threshold: 0.1 }
+                );
+
+                const currentRefs = featureRefs.current;
+                Object.values(currentRefs).forEach(ref => {
+                    if (ref) observer.observe(ref);
+                });
+
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    Object.values(currentRefs).forEach(ref => {
+                        if (ref) observer.unobserve(ref);
+                    });
+                };
+            }, [features]);
+
+
+            const heroContainerRef = useRef(null);
+            const [logoStyle, setLogoStyle] = useState({});
+            const [glowStyle, setGlowStyle] = useState({});
+
+            const handleMouseMove = (e) => {
+                if (!heroContainerRef.current) return;
+                const { left, top, width, height } = heroContainerRef.current.getBoundingClientRect();
+                const x = (e.clientX - left) / width;
+                const y = (e.clientY - top) / height;
+                const rotateX = -(y - 0.5) * 20;
+                const rotateY = (x - 0.5) * 20;
+                setLogoStyle({ transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`, transition: 'transform 0.1s ease-out' });
+                setGlowStyle({ top: `${y * 100}%`, left: `${x * 100}%`, transition: 'top 0.2s ease-out, left 0.2s ease-out' });
+            };
+
+            const handleMouseLeave = () => {
+                setLogoStyle({ transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)', transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' });
+                setGlowStyle({ top: `50%`, left: `50%`, transition: 'top 0.5s ease-out, left 0.5s ease-out' });
+            };
+            
+            const privacyRef = useFadeIn();
+            const downloadRef = useFadeIn();
+
+            return (
+                <div id="aurora-wrapper">
+                    <Header />
+                    <main>
+                        <header ref={heroContainerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative flex flex-col items-center justify-center text-center min-h-screen px-4 overflow-hidden">
+                            <div style={glowStyle} className="absolute w-[50vw] h-[50vh] bg-blue-500/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none"></div>
+                            <div className="z-10 animate-fade-in">
+                               <div style={logoStyle} className="w-28 h-28 md:w-36 md:h-36 flex items-center justify-center mb-8">
+                                    <img 
+                                        src="https://placehold.co/144x144/ffffff/000000?text=Logo&font=inter" 
+                                        alt="Personal Logo" 
+                                        className="w-full h-full object-cover rounded-[2.25rem] shadow-2xl shadow-blue-500/20" 
+                                    />
+                                </div>
+                                <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tighter animated-text-gradient" style={{ animationDelay: '200ms' }}>Personal</h1>
+                                <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8" style={{ animationDelay: '400ms' }}>
+                                    一款注重隐私、设计驱动的桌面效率工具。<br />集笔记、密码与站点管理于一体。
+                                </p>
+                                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center" style={{ animationDelay: '600ms' }}>
+                                    <a href="#download" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.MacosIcon /> 下载 macOS 版</a>
+                                    <a href="#download" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.WindowsIcon /> 下载 Windows 版</a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <section id="features" className="relative py-20 md:py-32 px-4 md:px-8 lg:px-16">
+                            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-32 items-start">
+                                <div className="md:sticky top-32 flex items-center md:pt-0 pt-16">
+                                   <ProductWindow activeFeature={activeFeature} />
+                                </div>
+                                <div className="md:col-start-2">
+                                    {features.map((feature) => (
+                                        <FeatureTextPanel 
+                                            key={feature.id} 
+                                            featureRef={el => featureRefs.current[feature.id] = el}
+                                            isVisible={activeFeature === feature.id}
+                                            {...feature} 
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section ref={privacyRef} id="privacy" className="text-center py-20 md:py-40 px-4">
+                            <SectionHeader text="完全本地化 · 隐私安全" />
+                            <p className="fade-in-section is-visible text-2xl md:text-3xl lg:text-4xl text-gray-200 max-w-4xl mx-auto mt-10 leading-relaxed">您的所有数据都存储在您的设备上，我们绝不收集或上传任何个人信息。</p>
+                        </section>
+                        
+                        <section ref={downloadRef} id="download" className="fade-in-section bg-gray-900/50 border border-white/10 backdrop-blur-md rounded-3xl max-w-5xl mx-auto my-20 md:my-32 p-8 md:p-16 text-center">
+                            <h2 className="text-4xl md:text-6xl font-bold mb-4 animated-text-gradient">即刻获取 Personal</h2>
+                            <p className="text-gray-400 mb-10 max-w-xl mx-auto">兼容主流桌面操作系统。点击下方按钮，从 GitHub Releases 安全下载最新版本。</p>
+                            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+                                <a href="https://github.com/your-repo/releases/latest/download/Personal.dmg" target="_blank" rel="noopener noreferrer" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.MacosIcon /> 下载 macOS (.dmg)</a>
+                                <a href="https://github.com/your-repo/releases/latest/download/Personal.exe" target="_blank" rel="noopener noreferrer" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.WindowsIcon /> 下载 Windows (.exe)</a>
+                            </div>
+                        </section>
+                    </main>
+
+                    <footer className="text-center py-10 border-t border-white/10">
+                        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                            <p className="text-gray-500">&copy; {new Date().getFullYear()} Personal. All Rights Reserved.</p>
+                            <a href="https://github.com/your-repo" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository"><icons.GithubIcon /></a>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+        
+        const Header = () => {
+            const [isScrolled, setIsScrolled] = useState(false);
+            useEffect(() => {
+                const handleScroll = () => setIsScrolled(window.scrollY > 10);
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-black/50 backdrop-blur-lg border-b border-white/10' : 'bg-transparent'}`}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-16">
+                            <div className="flex items-center">
+                               <img src="https://placehold.co/24x24/ffffff/000000?text=P&font=inter" alt="Personal Logo" className="w-6 h-6 rounded-md" />
+                                <span className="text-white text-lg font-semibold ml-2">Personal</span>
+                            </div>
+                            <div className="hidden md:block">
+                                <div className="ml-10 flex items-baseline space-x-4">
+                                    <a href="#features" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">功能</a>
+                                    <a href="#privacy" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">隐私</a>
+                                    <a href="#download" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">下载</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
