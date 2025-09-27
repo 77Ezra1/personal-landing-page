@@ -22,7 +22,6 @@
     <style>
         :root {
             --brand-color: #007AFF;
-            --scroll-y: 0;
         }
         html {
             scroll-behavior: smooth;
@@ -34,8 +33,6 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 25% calc(25% + var(--scroll-y) * 0.1px), rgba(0, 122, 255, 0.1), transparent 40%),
-                              radial-gradient(circle at 75% calc(75% + var(--scroll-y) * 0.05px), rgba(0, 122, 255, 0.08), transparent 50%);
         }
 
         @keyframes fadeIn {
@@ -80,41 +77,6 @@
             transition: all 0.3s ease;
             z-index: 1;
         }
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 150%;
-            padding-bottom: 150%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 122, 255, 0.35) 0%, rgba(0, 122, 255, 0) 70%);
-            transform: translate(-50%, -50%) scale(0);
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: -1;
-        }
-        .cta-button:hover::before {
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        #aurora-wrapper::before {
-            content: '';
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 150vw;
-            height: 150vh;
-            background-image: radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 40%);
-            transform: translate(-50%, -50%);
-            filter: blur(120px);
-            z-index: -2;
-            animation: pulse 20s infinite ease-in-out;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.1; }
-            50% { transform: translate(-45%, -55%) scale(1.2); opacity: 0.2; }
-        }
-
     </style>
 </head>
 <body class="bg-black">
@@ -162,6 +124,7 @@
                 notes: { title: "灵感妙记", content: <div className="p-6 text-sm text-gray-300 font-mono"><h3 className="text-white font-bold mb-4 text-base"># Personal 官网设计思路.md</h3><p><span className="text-blue-400">## 核心理念</span><br/>- 简约高级, 参考 <span className="text-green-400">Apple</span> 官网<br/>- 突出 **本地化** 与 **隐私安全**</p></div> },
                 vault: { title: "密码库", content: <div className="p-6 text-sm text-gray-300"><div className="flex items-center mb-4 p-3 bg-white/5 rounded-lg"><div className="w-8 h-8 rounded-lg bg-blue-500 mr-4 flex-shrink-0"></div><div className="w-full"><div className="h-4 bg-gray-600 rounded w-1/2"></div></div></div><div className="flex items-center p-3 bg-white/5 rounded-lg"><div className="w-8 h-8 rounded-lg bg-green-500 mr-4 flex-shrink-0"></div><div className="w-full"><div className="h-4 bg-gray-600 rounded w-3/5"></div></div></div></div> },
                 sites: { title: "网站管理", content: <div className="p-6 space-y-3"><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">github.com</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">google.com</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">apple.com</div></div> },
+                documents: { title: "文档管理", content: <div className="p-6 space-y-3"><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">年度报告.docx</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">项目计划.pdf</div><div className="h-10 bg-white/5 rounded-lg w-full flex items-center px-4 font-mono text-gray-400">设计原型.sketch</div></div> },
                 command: { title: "命令面板", content: <div className="p-6 text-gray-400 font-mono text-base">&gt; search personal...<span className="animate-ping">_</span></div> },
                 offline: { title: "离线优先", content: <div className="p-6 flex items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="M17.5 19.5C19.433 19.5 21 17.933 21 16C21 14.067 19.433 12.5 17.5 12.5H17.062C16.8475 9.48934 14.4442 7.02868 11.4384 7.00067C8.75026 6.97541 6.38671 8.87593 5.67004 11.5M4.5 15.5C3.11929 15.5 2 16.6193 2 18C2 19.3807 3.11929 20.5 4.5 20.5H15.5"/><path d="M4 19L20 5"/></svg></div> }
             };
@@ -200,6 +163,7 @@
                 { id: "notes", title: "灵感妙记", description: "强大的本地 Markdown 笔记系统。支持新建、编辑、删除，自动提取标签，并提供全文搜索与即时预览。" },
                 { id: "vault", title: "密码库", description: "采用 PBKDF2 与 AES-GCM 行业标准加密。支持 TOTP 和自定义附加字段，为您的数字身份提供坚实保障。" },
                 { id: "sites", title: "网站管理", description: "便捷记录和管理常用站点，一键快速打开或删除。在命令行模式下，更可实现全局模糊搜索，效率倍增。" },
+                { id: "documents", title: "文档管理", description: "记录常用文档，支持本地文件链接。一键唤起，快速打开本地进行预览和编辑，无缝衔接您的工作流。" },
                 { id: "command", title: "命令面板", description: "通过全局快捷键唤醒统一入口，快速执行应用内几乎所有功能。无需鼠标，沉浸式操作体验触手可及。" },
                 { id: "offline", title: "离线优先", description: "内置 SQLite 和 IndexedDB 双重保障，核心数据离线可访问。PWA 支持让您随时随地都能高效工作。" }
             ], []);
@@ -207,9 +171,6 @@
             const featureRefs = useRef({});
 
             useEffect(() => {
-                const handleScroll = () => document.documentElement.style.setProperty('--scroll-y', `${window.scrollY}px`);
-                window.addEventListener('scroll', handleScroll, { passive: true });
-                
                 const observer = new IntersectionObserver(
                     (entries) => {
                         entries.forEach((entry) => {
@@ -227,7 +188,6 @@
                 });
 
                 return () => {
-                    window.removeEventListener('scroll', handleScroll);
                     Object.values(currentRefs).forEach(ref => {
                         if (ref) observer.unobserve(ref);
                     });
@@ -237,7 +197,6 @@
 
             const heroContainerRef = useRef(null);
             const [logoStyle, setLogoStyle] = useState({});
-            const [glowStyle, setGlowStyle] = useState({});
 
             const handleMouseMove = (e) => {
                 if (!heroContainerRef.current) return;
@@ -247,29 +206,26 @@
                 const rotateX = -(y - 0.5) * 20;
                 const rotateY = (x - 0.5) * 20;
                 setLogoStyle({ transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`, transition: 'transform 0.1s ease-out' });
-                setGlowStyle({ top: `${y * 100}%`, left: `${x * 100}%`, transition: 'top 0.2s ease-out, left 0.2s ease-out' });
             };
 
             const handleMouseLeave = () => {
                 setLogoStyle({ transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)', transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' });
-                setGlowStyle({ top: `50%`, left: `50%`, transition: 'top 0.5s ease-out, left 0.5s ease-out' });
             };
             
             const privacyRef = useFadeIn();
             const downloadRef = useFadeIn();
 
             return (
-                <div id="aurora-wrapper">
+                <div>
                     <Header />
                     <main>
                         <header ref={heroContainerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative flex flex-col items-center justify-center text-center min-h-screen px-4 overflow-hidden">
-                            <div style={glowStyle} className="absolute w-[50vw] h-[50vh] bg-blue-500/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none"></div>
                             <div className="z-10 animate-fade-in">
                                <div style={logoStyle} className="w-28 h-28 md:w-36 md:h-36 flex items-center justify-center mb-8">
                                     <img 
                                         src="https://cdn.jsdelivr.net/gh/77Ezra1/personal-landing-page/logo.png" 
                                         alt="Personal Logo" 
-                                        className="w-full h-full object-cover rounded-[2.25rem] shadow-2xl shadow-blue-500/20" 
+                                        className="w-full h-full object-cover rounded-[2.25rem]" 
                                     />
                                 </div>
                                 <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tighter animated-text-gradient" style={{ animationDelay: '200ms' }}>Personal</h1>
@@ -277,8 +233,8 @@
                                     一款注重隐私、设计驱动的桌面效率工具。<br />集笔记、密码与站点管理于一体。
                                 </p>
                                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center" style={{ animationDelay: '600ms' }}>
-                                    <a href="#download" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.MacosIcon /> 下载 macOS 版</a>
-                                    <a href="#download" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.WindowsIcon /> 下载 Windows 版</a>
+                                    <a href="#download" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105">下载 macOS 版</a>
+                                    <a href="#download" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105">下载 Windows 版</a>
                                 </div>
                             </div>
                         </header>
@@ -310,8 +266,8 @@
                             <h2 className="text-4xl md:text-6xl font-bold mb-4 animated-text-gradient">即刻获取 Personal</h2>
                             <p className="text-gray-400 mb-10 max-w-xl mx-auto">兼容主流桌面操作系统。点击下方按钮，从 GitHub Releases 安全下载最新版本。</p>
                             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-                                <a href="https://github.com/your-repo/releases/latest/download/Personal.dmg" target="_blank" rel="noopener noreferrer" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.MacosIcon /> 下载 macOS (.dmg)</a>
-                                <a href="https://github.com/your-repo/releases/latest/download/Personal.exe" target="_blank" rel="noopener noreferrer" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105"><icons.WindowsIcon /> 下载 Windows (.exe)</a>
+                                <a href="https://github.com/your-repo/releases/latest/download/Personal.dmg" target="_blank" rel="noopener noreferrer" className="cta-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105">下载 macOS (.dmg)</a>
+                                <a href="https://github.com/your-repo/releases/latest/download/Personal.exe" target="_blank" rel="noopener noreferrer" className="cta-button bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 px-8 rounded-xl flex items-center justify-center transform hover:scale-105">下载 Windows (.exe)</a>
                             </div>
                         </section>
                     </main>
@@ -360,9 +316,7 @@
         root.render(<App />);
     </script>
 </body>
-
 </html>
-
 
 
 
